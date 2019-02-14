@@ -6,27 +6,98 @@
     Author:     PHLIPPER\sirius
 */
 
-// Define User Types below here or use a .h file
-//
 
+#include <Wire.h>
+#include <RTClib.h>
+#include "SensorDHT22.h"
+#include "DigitalLight.h"
+#include "Heater.h"
+#include "Cooler.h"
+#include "Water.h"
 
-// Define Function Prototypes that use User Types below here or use a .h file
-//
+#define DEBUG 1
 
+#ifdef DEBUG
+	#define DEBUG_PRINT(x)  Serial.println (x)
+#else
+	#define DEBUG_PRINT(x)
+#endif
 
-// Define Functions below here or use other .ino or cpp files
-//
+DigitalLight light()
+Heater heater()
+Water warer()
+Cooler cooler()
 
-// The setup() function runs once each time the micro-controller starts
-void setup()
-{
+RTC_DS3231  rtc;
 
+char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 
+void setup() {
+
+#ifndef ESP8266
+	while (!Serial); // for Leonardo/Micro/Zero
+#endif
+
+	Serial.begin(115200);
+
+	delay(3000); // wait for console opening
+
+	if (!rtc.begin()) {
+		Serial.println("Couldn't find RTC");
+		while (1);
+	}
+
+	if (rtc.lostPower()) {
+		Serial.println("RTC lost power, lets set the time!");
+		// following line sets the RTC to the date & time this sketch was compiled
+		rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+		// This line sets the RTC with an explicit date & time, for example to set
+		// January 21, 2014 at 3am you would call:
+		// rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
+	}
 }
 
-// Add the main program code into the continuous loop() function
-void loop()
-{
+void loop() {
+	DateTime now = rtc.now();
 
+	Serial.print(now.year(), DEC);
+	Serial.print('/');
+	Serial.print(now.month(), DEC);
+	Serial.print('/');
+	Serial.print(now.day(), DEC);
+	Serial.print(" (");
+	Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
+	Serial.print(") ");
+	Serial.print(now.hour(), DEC);
+	Serial.print(':');
+	Serial.print(now.minute(), DEC);
+	Serial.print(':');
+	Serial.print(now.second(), DEC);
+	Serial.println();
 
+	Serial.print(" since midnight 1/1/1970 = ");
+	Serial.print(now.unixtime());
+	Serial.print("s = ");
+	Serial.print(now.unixtime() / 86400L);
+	Serial.println("d");
+
+	// calculate a date which is 7 days and 30 seconds into the future
+	DateTime future(now + TimeSpan(7, 12, 30, 6));
+
+	Serial.print(" now + 7d + 30s: ");
+	Serial.print(future.year(), DEC);
+	Serial.print('/');
+	Serial.print(future.month(), DEC);
+	Serial.print('/');
+	Serial.print(future.day(), DEC);
+	Serial.print(' ');
+	Serial.print(future.hour(), DEC);
+	Serial.print(':');
+	Serial.print(future.minute(), DEC);
+	Serial.print(':');
+	Serial.print(future.second(), DEC);
+	Serial.println();
+
+	Serial.println();
+	delay(3000);
 }
